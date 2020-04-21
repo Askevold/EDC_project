@@ -54,29 +54,6 @@ def hent_data(first):
 
     return(L,T, LK,TK)
 
-def plotting(parameterX, parameterY, C):
-    paramX = [0]*(30*C)
-    paramY = [0]*(30*C)
-
-    farger = ['bo','rx','g1']
-
-    for i in range(30*C):
-        paramX[i] = L[i][parameterX]
-        paramY[i] = L[i][parameterY]
-
-    for i in range(C):
-        plt.plot(paramX[i*30:30 * (i + 1) - 1], paramY[i*30:30 * (i + 1) - 1], farger[i], label='vv')
-    plt.ylabel(parameterY)
-    plt.xlabel(parameterX)
-    plt.show()
-
-SL = 0
-SW = 1
-PL = 2
-PW = 3
-
-#plotting(SW,SL, 3)
-
 #calculating the sigmoid function
 def sigmoid(W, L):
      return (1 / (1 + np.exp(-np.dot(L, W.T))))
@@ -92,10 +69,9 @@ def grad_MSE(g, LK ,L):
 def MSE(A,B):
     return ((A - B) ** 2).mean(axis=1)
 
-
-def trening(alpha, iterations, L ,LK):
+def trening(alpha, iterations, L ,LK, feature_nr):
 # trene del
-    W = np.zeros((3, 4))
+    W = np.zeros((3, feature_nr))
     mse_verd = []
 
     for i in range(iterations):
@@ -146,23 +122,97 @@ def printing_results(W,L,LK,T,TK):
     printing_conf(conf)
     print("Correct:", np.sum(pred == true) / len(pred))
 
+#Setosa har klasse nr. 0 ,versicolor har 1, virginica har 2
+def feature_splitting(klasse_nr):
+    class_1 =open("class_1").read().split('\n')
+    class_2= open("class_2").read().split('\n')
+    class_3 = open("class_3").read().split('\n')
+
+    data = class_1[0:50] + class_2[0:50] + class_3[0:50]
+    for i in range(len(data)):
+        data[i] = data[i].split(',')
+        for j in range(len(data[i])):
+            data[i][j] = float (data[i][j])
+
+    SL = [0]*50
+    SW = [0]*50
+    PL = [0]*50
+    PW = [0]*50
+
+    for i in range(50):
+        SL[i] = data[i + 50*klasse_nr][0]
+        SW[i] = data[i + 50*klasse_nr][1]
+        PL[i] = data[i + 50*klasse_nr][2]
+        PW[i] = data[i + 50*klasse_nr][3]
+
+    return (SL, SW, PL, PW)
+
+def histogram_plot():
+    set_SL, set_SW, set_PL, set_PW = feature_splitting(0)
+    ver_SL, ver_SW, ver_PL, ver_PW = feature_splitting(1)
+    vir_SL, vir_SW, vir_PL, vir_PW = feature_splitting(2)
+
+    plt.subplot(2, 2, 1)
+    plt.title("Sepal length in cm")
+    plt.hist(set_SL, color="lightcoral", label="setosa", edgecolor='black')
+    plt.hist(ver_SL, color="darkgreen", label="versicolor",edgecolor='black')
+    plt.hist(vir_SL, color="cornflowerblue", label="virginica",edgecolor='black')
+    plt.legend()
+
+    plt.subplot(2, 2, 2)
+    plt.title("Sepal width in cm")
+    plt.hist(set_SW, color="lightcoral", label="setosa",edgecolor='black')
+    plt.hist(ver_SW, color="darkgreen", label="versicolor",edgecolor='black')
+    plt.hist(vir_SW, color="cornflowerblue", label="virginica",edgecolor='black')
+    plt.legend()
+
+    plt.subplot(2, 2, 3)
+    plt.title("Petal length in cm")
+    plt.hist(set_PL, color="lightcoral", label="setosa", edgecolor='black')
+    plt.hist(ver_PL, color="darkgreen", label="versicolor" , edgecolor='black')
+    plt.hist(vir_PL, color="cornflowerblue", label="virginica", edgecolor='black')
+    plt.legend()
+
+    plt.subplot(2, 2, 4)
+    plt.title("Petal width in cm")
+    plt.hist(set_PW, color="lightcoral", label="setosa", edgecolor='black')
+    plt.hist(ver_PW, color="darkgreen", label="versicolor",edgecolor='black')
+    plt.hist(vir_PW, color="cornflowerblue", label="virginica",edgecolor='black')
+    plt.legend()
+    plt.tight_layout()
+    plt.show()
+
+#remove one of the features, SL = 0, SW = 1, PL = 2, PW = 3
+def remove_feature(X, feature):
+    for i in range(len(X)):
+        del X[i][feature]
+    return (X)
+
 def main():
     iterations = 5000
     alpha = 0.0005
+    feature_nr = 4
 
     print("------------- 30 first for training and 20 last for testing -------------")
     L, T, LK, TK = hent_data(True)
-    W, mse_verd = trening(alpha,iterations,L, LK)
-    printing_results(W,L,LK,T,TK)
+    W, mse_verd = trening(alpha,iterations,L, LK, feature_nr)
+    #printing_results(W,L,LK,T,TK)
 
 
     print("------------- 30 last for training and 20 first for testing -------------")
     L, T, LK, TK = hent_data(False)
-    W, mse_verd = trening(alpha,iterations,L, LK)
+    #W, mse_verd = trening(alpha,iterations,L, LK)
+    #printing_results(W, L, LK, T, TK)
+
+    print("------------- Histograms for features -------------")
+    histogram_plot()
+    L, T, LK, TK = hent_data(True)
+    feature_nr = 3
+    L = remove_feature(L,1)
+    T = remove_feature(T,1)
+
+    W, mse_verd = trening(alpha,iterations,L,LK,feature_nr)
     printing_results(W, L, LK, T, TK)
-
-main()
-
 
 main()
 

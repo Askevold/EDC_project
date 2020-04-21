@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from prettytable import PrettyTable
 
 klasser = {
     'Iris-setosa': np.array([1, 0, 0]),
@@ -7,8 +8,13 @@ klasser = {
     'Iris-virginica': np.array([0, 0, 1])
 }
 
-#deler opp dataen fra filene i et læresett (30) L[] og et treningssett (20) T[]
+
 def hent_data(first):
+    """
+    Deler opp dataen fra filene i et læresett (30) L[] og et treningssett (20) T[].
+    Lager LK og TK for å definere den sanne klasses til L og T.
+    Dersom first == True, er de første 30 til læring. Dersom den er False er de siste 30 som er til læring, og vica versa med Trening
+    """
     class_1 =open("class_1").read().split('\n')
     class_2= open("class_2").read().split('\n')
     class_3 = open("class_3").read().split('\n')
@@ -21,7 +27,6 @@ def hent_data(first):
         split = 20
         L = class_1[split:50] + class_2[split:50] + class_3[split:50]
         T = class_1[0:split] + class_2[0:split] + class_3[0:split]
-
 
     LK = [0]*90
     TK = [0]*60
@@ -54,23 +59,31 @@ def hent_data(first):
 
     return(L,T, LK,TK)
 
-#calculating the sigmoid function
 def sigmoid(W, L):
-     return (1 / (1 + np.exp(-np.dot(L, W.T))))
+    """
+    Regner ut sigmoid funksjonen
+    """
+    return (1 / (1 + np.exp(-np.dot(L, W.T))))
 
-#calculating the MSE gradient
 def grad_MSE(g, LK ,L):
-    ting1 = g - LK
-    ting2 = g*(1- g)
-    ting3 = np.transpose(L)
+    """
+    Regner ut MSE gradienten
+    """
+    g_min_LK = g - LK
+    g_mul_1_min_g = g*(1- g)
+    L_trans = np.transpose(L)
 
-    return (np.dot(ting3, ting1*ting2))
+    return (np.dot(L_trans, g_min_LK*g_mul_1_min_g))
 
 def MSE(A,B):
+    #Finner minimum square error for to ting
     return ((A - B) ** 2).mean(axis=1)
 
 def trening(alpha, iterations, L ,LK, feature_nr):
-# trene del
+    """
+    Trene del: tar inn steps alpha, antal iteratione, Lære matrise, sanne klassene til lærematrisen og antall featuers som er benyttet.
+    Regner ut W (weights) og mse for hver iterasjon
+    """
     W = np.zeros((3, feature_nr))
     mse_verd = []
 
@@ -83,6 +96,8 @@ def trening(alpha, iterations, L ,LK, feature_nr):
     return(W, mse_verd)
 
 def predict(W,T):
+    #Finner predicted classe for et sett T med test data
+
     P = sigmoid(W,T)
     if P.ndim == 1:
         return(np.argmax(P))
@@ -90,21 +105,27 @@ def predict(W,T):
         return (np.argmax(P,axis=1))
 
 def confusion_mat(pred, true):
+    #Finner confusion matrisen for en prediction fra de sanne klassene
+
     conf = np.zeros((3,3),dtype=int)
     for i in range(len(pred)):
         conf[pred[i]][true[i]] += 1
     return (conf)
 
 def printing_conf(conf):
-    print("Class |  1  |  2  |  3  |")
-    for i in range(3):
-        print(" ",i +1,"  |  ", end = '')
-        for j in range(3):
-            print(conf[i][j], " | ", end = '')
-        print("\n")
+    #Plotter confusion matrisen sånn at den ser bra ut
+
+    x = PrettyTable()
+    x.field_names=["Class nr:", "Iris-setosa" ,"Iris-versicolor","Iris-virginica"]
+    conf = np.insert(conf, [0], [[1],[2],[3]], axis=1)
+    x.add_row(conf[0])
+    x.add_row(conf[1])
+    x.add_row(conf[2])
+    print(x)
 
 def printing_results(W,L,LK,T,TK):
-    print("Trainingset:")
+    #Regner ut prediction, confusion matrisen og error rate for læresettet og treningssettet
+    print("Learning set:")
     pred = predict(W, L)
     true = np.argmax(LK, axis=1)
     conf = confusion_mat(pred, true)
@@ -113,7 +134,7 @@ def printing_results(W,L,LK,T,TK):
     printing_conf(conf)
     print("Correct:", np.sum(pred == true) / len(pred), '\n')
 
-    print("Testset:")
+    print("Training set:")
     pred = predict(W, T)
     true = np.argmax(TK, axis=1)
     conf = confusion_mat(pred, true)
@@ -122,8 +143,10 @@ def printing_results(W,L,LK,T,TK):
     printing_conf(conf)
     print("Correct:", np.sum(pred == true) / len(pred))
 
-#Setosa har klasse nr. 0 ,versicolor har 1, virginica har 2
+
 def feature_splitting(klasse_nr):
+    #Dele opp dataene i de forskjellige featurene
+
     class_1 =open("class_1").read().split('\n')
     class_2= open("class_2").read().split('\n')
     class_3 = open("class_3").read().split('\n')
@@ -148,6 +171,8 @@ def feature_splitting(klasse_nr):
     return (SL, SW, PL, PW)
 
 def histogram_plot():
+    #plotter histogrammene til de forskjellige featurene
+
     set_SL, set_SW, set_PL, set_PW = feature_splitting(0)
     ver_SL, ver_SW, ver_PL, ver_PW = feature_splitting(1)
     vir_SL, vir_SW, vir_PL, vir_PW = feature_splitting(2)
@@ -182,34 +207,52 @@ def histogram_plot():
     plt.tight_layout()
     plt.show()
 
-#remove one of the features, SL = 0, SW = 1, PL = 2, PW = 3
 def remove_feature(X, feature):
+    #fjerne en av featurene fra matrisen X. Featurene er gitt som [SL, SW, PL, PW]. NB! kommer til å endres når man har fjernet en
     for i in range(len(X)):
         del X[i][feature]
     return (X)
 
 def main():
-    iterations = 5000
+    iterations = 10000
     alpha = 0.0005
     feature_nr = 4
 
     print("------------- 30 first for training and 20 last for testing -------------")
     L, T, LK, TK = hent_data(True)
     W, mse_verd = trening(alpha,iterations,L, LK, feature_nr)
-    #printing_results(W,L,LK,T,TK)
+    printing_results(W,L,LK,T,TK)
 
 
-    print("------------- 30 last for training and 20 first for testing -------------")
+    print('\n',"------------- 30 last for training and 20 first for testing -------------")
     L, T, LK, TK = hent_data(False)
-    #W, mse_verd = trening(alpha,iterations,L, LK)
-    #printing_results(W, L, LK, T, TK)
+    W, mse_verd = trening(alpha,iterations,L, LK,feature_nr)
+    printing_results(W, L, LK, T, TK)
 
-    print("------------- Histograms for features -------------")
+    print('\n',"-------------          Histograms for features              -------------")
     histogram_plot()
     L, T, LK, TK = hent_data(True)
+    print('\n', "Removing the feature Sepal width")
     feature_nr = 3
     L = remove_feature(L,1)
     T = remove_feature(T,1)
+
+    W, mse_verd = trening(alpha,iterations,L,LK,feature_nr)
+    printing_results(W, L, LK, T, TK)
+
+    print('\n', "Removing the feature Sepal lenght")
+    feature_nr = 2
+    L = remove_feature(L,0)
+    T = remove_feature(T,0)
+
+    W, mse_verd = trening(alpha,iterations,L,LK,feature_nr)
+    printing_results(W, L, LK, T, TK)
+
+    print('\n', "Removing the feature Petal lenght")
+    feature_nr = 1
+
+    L = remove_feature(L,0)
+    T = remove_feature(T,0)
 
     W, mse_verd = trening(alpha,iterations,L,LK,feature_nr)
     printing_results(W, L, LK, T, TK)

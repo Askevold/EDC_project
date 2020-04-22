@@ -214,8 +214,8 @@ def remove_feature(X, feature):
     return (X)
 
 def main():
-    iterations = 10000
-    alpha = 0.0005
+    iterations = 2000
+    alpha = 0.005
     feature_nr = 4
 
     print("------------- 30 first for training and 20 last for testing -------------")

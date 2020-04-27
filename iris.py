@@ -132,7 +132,8 @@ def printing_results(W,L,LK,T,TK):
 
     print("Confusion Matrix:")
     printing_conf(conf)
-    print("Correct:", np.sum(pred == true) / len(pred), '\n')
+    errorL =  1 - np.sum(pred == true) / len(pred)
+    print("Error rate:", "{:.2f}".format(errorL), '\n')
 
     print("Training set:")
     pred = predict(W, T)
@@ -141,8 +142,8 @@ def printing_results(W,L,LK,T,TK):
 
     print("Confusion Matrix:")
     printing_conf(conf)
-    print("Correct:", np.sum(pred == true) / len(pred))
-
+    errorT = 1 - np.sum(pred == true) / len(pred)
+    print("Error rate:",  "{:.2f}".format(errorT))
 
 def feature_splitting(klasse_nr):
     #Dele opp dataene i de forskjellige featurene
@@ -180,28 +181,28 @@ def histogram_plot():
     plt.subplot(2, 2, 1)
     plt.title("Sepal length in cm")
     plt.hist(set_SL, color="lightcoral", label="setosa", edgecolor='black')
-    plt.hist(ver_SL, color="darkgreen", label="versicolor",edgecolor='black')
+    plt.hist(ver_SL, color="mediumseagreen", label="versicolor",edgecolor='black')
     plt.hist(vir_SL, color="cornflowerblue", label="virginica",edgecolor='black')
     plt.legend()
 
     plt.subplot(2, 2, 2)
     plt.title("Sepal width in cm")
     plt.hist(set_SW, color="lightcoral", label="setosa",edgecolor='black')
-    plt.hist(ver_SW, color="darkgreen", label="versicolor",edgecolor='black')
+    plt.hist(ver_SW, color="mediumseagreen", label="versicolor",edgecolor='black')
     plt.hist(vir_SW, color="cornflowerblue", label="virginica",edgecolor='black')
     plt.legend()
 
     plt.subplot(2, 2, 3)
     plt.title("Petal length in cm")
     plt.hist(set_PL, color="lightcoral", label="setosa", edgecolor='black')
-    plt.hist(ver_PL, color="darkgreen", label="versicolor" , edgecolor='black')
+    plt.hist(ver_PL, color="mediumseagreen", label="versicolor" , edgecolor='black')
     plt.hist(vir_PL, color="cornflowerblue", label="virginica", edgecolor='black')
     plt.legend()
 
     plt.subplot(2, 2, 4)
     plt.title("Petal width in cm")
     plt.hist(set_PW, color="lightcoral", label="setosa", edgecolor='black')
-    plt.hist(ver_PW, color="darkgreen", label="versicolor",edgecolor='black')
+    plt.hist(ver_PW, color="mediumseagreen", label="versicolor",edgecolor='black')
     plt.hist(vir_PW, color="cornflowerblue", label="virginica",edgecolor='black')
     plt.legend()
     plt.tight_layout()
@@ -218,13 +219,12 @@ def main():
     alpha = 0.005
     feature_nr = 4
 
-    print("------------- 30 first for training and 20 last for testing -------------")
+    print("------------- 30 first for learning and 20 last for training  -------------")
     L, T, LK, TK = hent_data(True)
     W, mse_verd = trening(alpha,iterations,L, LK, feature_nr)
     printing_results(W,L,LK,T,TK)
 
-
-    print('\n',"------------- 30 last for training and 20 first for testing -------------")
+    print('\n',"------------- 30 last for learning and 20 first for training  -------------")
     L, T, LK, TK = hent_data(False)
     W, mse_verd = trening(alpha,iterations,L, LK,feature_nr)
     printing_results(W, L, LK, T, TK)

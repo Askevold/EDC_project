@@ -65,7 +65,6 @@ print(dataset.describe())
 
 # Class Distribution
 print(dataset.groupby('class').size())
-dataset.pop()
 # partition the data into training and testing splits, using 30 (60%) of each
 # of the data for training and the remaining 20 (40%) of each for testing
 array = dataset.values
